@@ -4,7 +4,7 @@ import os
 DATA_FILENAME = 'winddata.xlsx'
 FEATURE_COLUMNS = ['Wind Direction', 'Theoretical_Power_Curve (KWh)', 'LV ActivePower (kW)', 'Wind Speed (m/s)']
 TARGET_COLUMN = 'Wind Speed (m/s)'
-SEQUENCE_LENGTH = 1
+SEQUENCE_LENGTH = 20
 TRAIN_RATIO = 0.7
 VAL_RATIO = 0.15
 MIN_SAMPLES = 100

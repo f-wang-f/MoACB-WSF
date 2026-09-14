@@ -143,6 +143,19 @@ def main():
             else:
                 raise ValueError("所有个体评估均失败!")
 
+        print(f'\n第 {run_id + 1} 次运行最后一代 Pareto 前沿各解的编码向量 (共 {len(final_pareto["params"])} 个):')
+        for sol_idx, individual in enumerate(final_pareto['params']):
+            topo_i, cnn_i, lstm_i, setting_i = decode_individual(individual)
+            perf_i = final_pareto['performance'][sol_idx]
+            comp_i = final_pareto['complexity'][sol_idx]
+            setting_str = f"[{setting_i[0]}, {setting_i[1]}, {setting_i[2]:.10g}, {setting_i[3]}]"
+            print(f'\n  ── 解 {sol_idx + 1} (验证RMSE={perf_i:.6f}, 复杂度={comp_i:.0f}) ──')
+            print(f'  当前使用的编码向量:')
+            print(f'    topo:    {topo_i}')
+            print(f'    CNN:     {cnn_i}')
+            print(f'    BiLSTM:  {lstm_i}')
+            print(f'    Setting: {setting_str}')
+
         topo, cnn_params, lstm_params, setting = decode_individual(best_individual)
         batch_size, learn_rate, opt_type, reg_type = decode_hyperparams(setting)
 
@@ -151,6 +164,12 @@ def main():
         print(f' learning_rate: {learn_rate:.6f}')
         print(f' optimizer: {opt_type}')
         print(f' regularizer: {reg_type}')
+
+        print(f'\n最终选中的最优个体编码向量:')
+        print(f'  topo:    {topo}')
+        print(f'  CNN:     {cnn_params}')
+        print(f'  BiLSTM:  {lstm_params}')
+        print(f'  Setting: [{setting[0]}, {setting[1]}, {setting[2]:.10g}, {setting[3]}]')
 
         print('\n训练最终模型...')
         model = HybridCNNBiLSTM(topo, cnn_params, lstm_params, num_features, SEQUENCE_LENGTH).to(device)
