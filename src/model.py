@@ -59,6 +59,21 @@ class HybridCNNBiLSTM(nn.Module):
                 out_channels = 16 * (knum + 1)
                 kernel_size = 2 * ksize + 3
                 self.convs.append(nn.Conv1d(in_channels, out_channels, kernel_size, padding='same'))
+                self.bns.append(nn.BatchNorm1d(out_channels))
+                if kact == 3:
+                    self.acts.append(act_map[kact](dim=1))
+                else:
+                    self.acts.append(act_map[kact]())
+
+                pool_size = 2 * ps + 3
+
+                if pt == 0:
+                    self.pools.append(nn.MaxPool1d(pool_size, stride=1, padding=(pool_size - 1) // 2))
+                elif pt == 1:
+                    self.pools.append(nn.AvgPool1d(pool_size, stride=1, padding=(pool_size - 1) // 2))
+                else:
+                    self.pools.append(nn.Identity())
+                self.adaptive_pools.append(nn.Identity())
             else:
                 knum, lnum, kact, pt, ps = lstm_params[i - NUM_CNN_MODULES]
                 hidden = 16 * (knum + 1)
@@ -109,14 +124,17 @@ class HybridCNNBiLSTM(nn.Module):
             input_i = torch.cat(inputs, dim=1) if len(inputs) > 1 else inputs[0]
             if i < NUM_CNN_MODULES:
                 out = self.convs[i](input_i)
+                out = self.bns[i](out)
+                out = self.acts[i](out)
+                out = self.pools[i](out)
             else:
                 input_lstm = input_i.permute(2, 0, 1)
                 out_lstm, _ = self.lstms[i - NUM_CNN_MODULES](input_lstm)
                 out = out_lstm.permute(1, 2, 0)
-                out = self.bns[i - NUM_CNN_MODULES](out)
-                out = self.acts[i - NUM_CNN_MODULES](out)
-                out = self.pools[i - NUM_CNN_MODULES](out)
-                out = self.adaptive_pools[i - NUM_CNN_MODULES](out)
+                out = self.bns[i](out)
+                out = self.acts[i](out)
+                out = self.pools[i](out)
+                out = self.adaptive_pools[i](out)
             if torch.isnan(out).any() or torch.isinf(out).any():
                 raise ValueError(f"模块{i}输出包含NaN或Inf值")
             outputs.append(out)

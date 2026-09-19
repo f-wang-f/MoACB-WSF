@@ -10,8 +10,8 @@ VAL_RATIO = 0.15
 MIN_SAMPLES = 100
 
 # ==================== NSGA-II 算法配置 ====================
-POP_SIZE = 60
-MAX_GEN = 30
+POP_SIZE = 80
+MAX_GEN = 40
 NUM_RUNS = 1
 MUTATION_PROB = 0.5
 CROSSOVER_PROB = 0.8
